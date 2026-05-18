@@ -9,7 +9,7 @@ End-to-end testing project using Playwright with TypeScript for testing the demo
 # 📦 Tech Stack
 
 - Node.js `v24.11`
-- Playwright 
+- Playwright `v1.60`
 - TypeScript
 
 ---
@@ -19,7 +19,9 @@ End-to-end testing project using Playwright with TypeScript for testing the demo
 ```bash
 .
 ├── tests/                # Test files
-├── pages/                # Page Object Model (optional)
+├── data/                 # User Auth
+├── fixtures/             # Dependency Injection
+├── pages/                # Page Object Model
 ├── utils/                # Helper functions
 ├── playwright.config.ts  # Playwright configuration
 ├── package.json
