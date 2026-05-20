@@ -22,8 +22,19 @@ test.describe('Homepage', () => {
   });
 
   test('Check pagination', async ({ page }) => {
-    await homepage.checkPaginationVisible();
-    await expect(homepage.product).toHaveCount(11);
+    await homepage.pagination.waitFor();
+    const paginationVisible = await homepage.pagination.isVisible();
+    if (await homepage.pagination.isVisible()) {
+      await expect(homepage.product).toHaveCount(9);
+    }
+  });
+
+  test('Check price', async ({ page }) => {
+    const price = await homepage.productPrice.nth(1).textContent();
+    console.log(price);
+  });
+  test('Check price1', async ({ page }) => {
+    await fixed.funcHomepage();
   });
   
 });

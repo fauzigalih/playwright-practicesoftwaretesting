@@ -5,20 +5,16 @@ export class HomePage {
   readonly banner: Locator;
   readonly product: Locator;
   readonly pagination: Locator;
+  readonly productName: Locator;
+  readonly productPrice: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.banner = page.locator('.img-fluid');
     this.product = page.locator('div.card-img-wrapper');
     this.pagination = page.locator('.pagination');
+    this.productName = page.locator('.card-title');
+    this.productPrice = page.getByTestId('product-price');
   }
-
-  async checkPaginationVisible() {
-    const paginationVisible = await this.pagination.isVisible();
-
-    if (paginationVisible) {
-      await expect(this.product).toHaveCount(11);
-    }
-  }
-
+  
 }

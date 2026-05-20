@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { HomePage } from './home.page';
 
 export class FixedPage {
   readonly page: Page;
@@ -12,9 +13,12 @@ export class FixedPage {
   readonly sortProduct: Locator;
   readonly priceRange: Locator;
   readonly search: Locator;
+  readonly homepage: HomePage;
 
 
   constructor(page: Page) {
+    
+    this.homepage = new HomePage(page);
     this.page = page;
     this.documentation = page.locator('a.text-white');
     this.logo = page.locator('.navbar-brand');
@@ -41,6 +45,33 @@ export class FixedPage {
     await expect(this.sortProduct).toBeVisible();
     await expect(this.priceRange).toBeVisible();
     await expect(this.search).toBeVisible();
+  }
+
+  // private async sortProducts(option: 'name'|'price'|'co2_rating' , sortType: 'asc'|'desc') {
+  //   await this.search.click();
+  //   await this.search.selectOption(option);
+  //   if (option === 'name') {
+  //     const titles = await this.homepage..allTextContents();
+  //     const sortedItems = [...titles].sort((a, b) =>
+  //     sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
+  //   );
+  //   expect(titles).toEqual(sortedItems);
+  //   } else {
+  //     const prices = (await this.priceProduct.allTextContents())
+  //     .map(p => Number(p.replace(/[^0-9.]/g, '')));
+  //     const sortedItems = [...prices].sort((a, b) =>
+  //       sortType === 'asc' ? a - b : b - a
+  //     );
+  //     expect(prices).toEqual(sortedItems);
+  //   }
+  // }
+
+  // async sortByNameAsc() {
+  //   await this.sortProducts('az', 'asc');
+  // }
+
+  async funcHomepage() {
+    console.log(this.homepage.productPrice.first().textContent);
   }
 
 }
