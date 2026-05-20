@@ -36,8 +36,8 @@ End-to-end testing project using Playwright with TypeScript for testing the demo
 Clone repository:
 
 ```bash
-git clone https://github.com/your-username/your-repository.git
-cd your-repository
+git clone https://github.com/fauzigalih/playwright-practicesoftwaretesting.git
+cd playwright-practicesoftwaretesting
 ```
 
 Install dependencies:
@@ -103,19 +103,15 @@ npx playwright show-report
 
 ---
 
-# ⚙️ Recommended Scripts
+# ⚙️ Additional Config Script
 
-Add these scripts into `package.json`:
+Add these scripts into `playwright.config.ts`:
 
 ```json
-{
-  "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed",
-    "report": "playwright show-report"
-  }
-}
+use: {
+  baseURL: 'https://practicesoftwaretesting.com',
+  testIdAttribute: 'data-test'
+},
 ```
 
 ---
