@@ -29,12 +29,22 @@ test.describe('Homepage', () => {
     }
   });
 
-  test('Check price', async ({ page }) => {
-    const price = await homepage.productPrice.nth(1).textContent();
-    console.log(price);
+  test('Check dropdown sort product', async ({ page }) => {
+    await fixed.sortByNameAsc();
+    await fixed.sortByNameDesc();
+    await fixed.sortByPriceAsc();
+    await fixed.sortByPriceDesc();
+    await fixed.sortByCo2Asc();
+    await fixed.sortByCo2Desc();
   });
-  test('Check price1', async ({ page }) => {
-    await fixed.funcHomepage();
-  });
+  
+  // test('Check price test', async ({ page }) => {
+  //   await homepage.productName.first().waitFor();
+  //   const titles = await homepage.productName.allTextContents();
+  //     console.log(`hasil: ${titles}`);
+  //     console.log('hasil:', titles);
+  //     console.log(JSON.stringify(titles, null, 2));
+  // });
+
   
 });

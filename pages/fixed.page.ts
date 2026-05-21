@@ -47,31 +47,66 @@ export class FixedPage {
     await expect(this.search).toBeVisible();
   }
 
-  // private async sortProducts(option: 'name'|'price'|'co2_rating' , sortType: 'asc'|'desc') {
-  //   await this.search.click();
-  //   await this.search.selectOption(option);
-  //   if (option === 'name') {
-  //     const titles = await this.homepage..allTextContents();
-  //     const sortedItems = [...titles].sort((a, b) =>
-  //     sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
-  //   );
-  //   expect(titles).toEqual(sortedItems);
-  //   } else {
-  //     const prices = (await this.priceProduct.allTextContents())
-  //     .map(p => Number(p.replace(/[^0-9.]/g, '')));
-  //     const sortedItems = [...prices].sort((a, b) =>
-  //       sortType === 'asc' ? a - b : b - a
-  //     );
-  //     expect(prices).toEqual(sortedItems);
-  //   }
-  // }
+  private async sortProducts(option: 'name'|'price'|'co2_rating' , sortType: 'asc'|'desc') {
+    const value = `${option},${sortType}`;
+    await this.sortProduct.click();
+    await this.sortProduct.selectOption(value);
+    await this.page.waitForTimeout(3000);
+    if (option === 'name') {
+      const titles = await this.homepage.productName.allTextContents();
+      const sortedItems = [...titles].sort((a, b) =>
+        sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
+      );
+      expect(titles).toEqual(sortedItems);
+      console.log('name',sortType, titles);
+    } else if (option === 'price') {
+      const prices = (await this.homepage.productPrice.allTextContents())
+        .map(p => Number(p.replace(/[^0-9.]/g, '')));
+      const sortedItems = [...prices].sort((a, b) =>
+        sortType === 'asc' ? a - b : b - a
+      );
+      expect(prices).toEqual(sortedItems);
+      console.log('price', sortType, prices);
+    } else if (option === 'co2_rating') {
+      const ratings = await this.homepage.productCo2Rating.evaluateAll(elements =>
+        elements.map(el => {
+          const active = el.querySelector('.co2-letter.active');
 
-  // async sortByNameAsc() {
-  //   await this.sortProducts('az', 'asc');
-  // }
+          return active?.textContent?.trim() || '';
+        })
+      );
+      const sortedItems = [...ratings].sort((a, b) =>
+        sortType === 'asc'
+          ? a.localeCompare(b)
+          : b.localeCompare(a)
+      );
+      expect(ratings).toEqual(sortedItems);
+      console.log('rating', sortType, ratings);
+    }
+  }
 
-  async funcHomepage() {
-    console.log(this.homepage.productPrice.first().textContent);
+  async sortByNameAsc() {
+    await this.sortProducts('name', 'asc');
+  }
+
+  async sortByNameDesc() {
+    await this.sortProducts('name', 'desc');
+  }
+
+  async sortByPriceAsc() {
+    await this.sortProducts('price', 'asc');
+  }
+  
+  async sortByPriceDesc() {
+    await this.sortProducts('price', 'desc');
+  }
+
+  async sortByCo2Asc() {
+    await this.sortProducts('co2_rating', 'asc');
+  }
+  
+  async sortByCo2Desc() {
+    await this.sortProducts('co2_rating', 'desc');
   }
 
 }
