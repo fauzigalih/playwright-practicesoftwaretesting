@@ -38,13 +38,4 @@ test.describe('Homepage', () => {
     await fixed.sortByCo2Desc();
   });
   
-  // test('Check price test', async ({ page }) => {
-  //   await homepage.productName.first().waitFor();
-  //   const titles = await homepage.productName.allTextContents();
-  //     console.log(`hasil: ${titles}`);
-  //     console.log('hasil:', titles);
-  //     console.log(JSON.stringify(titles, null, 2));
-  // });
-
-  
 });

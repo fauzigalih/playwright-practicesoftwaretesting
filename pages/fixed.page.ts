@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { HomePage } from './home.page';
+import { title } from 'node:process';
 
 export class FixedPage {
   readonly page: Page;
@@ -51,37 +52,95 @@ export class FixedPage {
     const value = `${option},${sortType}`;
     await this.sortProduct.click();
     await this.sortProduct.selectOption(value);
-    await this.page.waitForTimeout(3000);
+    await this.page.waitForTimeout(6000);
+    const allData = [];
+    const allSortedItems = [];
     if (option === 'name') {
-      const titles = await this.homepage.productName.allTextContents();
-      const sortedItems = [...titles].sort((a, b) =>
+      // page1
+      const titles1 = await this.homepage.productName.allTextContents();
+      const sortedItems1 = [...titles1].sort((a, b) =>
         sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
       );
-      expect(titles).toEqual(sortedItems);
-      console.log('name',sortType, titles);
+      allData.push(...titles1);
+      allSortedItems.push(...sortedItems1);
+      
+      // check page2 exists
+      const page2 = this.page.locator('[aria-label="Page-2"]');
+      if (await page2.count() > 0) {
+        await page2.click();
+        await this.page.waitForTimeout(6000);
+        const titles2 = await this.homepage.productName.allTextContents();
+        const sortedItems2 = [...titles2].sort((a, b) =>
+          sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
+        );
+        allData.push(...titles2);
+        allSortedItems.push(...sortedItems2);
+      }
+
+      console.log('name',sortType, allData);
+      expect(allData).toEqual(allSortedItems);
+
     } else if (option === 'price') {
-      const prices = (await this.homepage.productPrice.allTextContents())
+      // page1
+      const prices1 = (await this.homepage.productPrice.allTextContents())
         .map(p => Number(p.replace(/[^0-9.]/g, '')));
-      const sortedItems = [...prices].sort((a, b) =>
+      const sortedItems1 = [...prices1].sort((a, b) =>
         sortType === 'asc' ? a - b : b - a
       );
-      expect(prices).toEqual(sortedItems);
-      console.log('price', sortType, prices);
+      allData.push(...prices1);
+      allSortedItems.push(...sortedItems1);
+
+      // check page2 exists
+      const page2 = this.page.locator('[aria-label="Page-2"]');
+      if (await page2.count() > 0) {
+        await page2.click();
+        await this.page.waitForTimeout(6000);
+        const prices2 = (await this.homepage.productPrice.allTextContents())
+          .map(p => Number(p.replace(/[^0-9.]/g, '')));
+        const sortedItems2 = [...prices2].sort((a, b) =>
+          sortType === 'asc' ? a - b : b - a
+        );
+        allData.push(...prices2);
+        allSortedItems.push(...sortedItems2);
+      }
+
+      console.log('price', sortType, allData);
+      expect(allData).toEqual(allSortedItems);
+
     } else if (option === 'co2_rating') {
-      const ratings = await this.homepage.productCo2Rating.evaluateAll(elements =>
+      // page1
+      const ratings1 = await this.homepage.productCo2Rating.evaluateAll(elements =>
         elements.map(el => {
           const active = el.querySelector('.co2-letter.active');
-
           return active?.textContent?.trim() || '';
         })
       );
-      const sortedItems = [...ratings].sort((a, b) =>
-        sortType === 'asc'
-          ? a.localeCompare(b)
-          : b.localeCompare(a)
+      const sortedItems1 = [...ratings1].sort((a, b) =>
+        sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
       );
-      expect(ratings).toEqual(sortedItems);
-      console.log('rating', sortType, ratings);
+      allData.push(...ratings1);
+      allSortedItems.push(...sortedItems1);
+
+      // check page2 exists
+      const page2 = this.page.locator('[aria-label="Page-2"]');
+      if (await page2.count() > 0) {
+        await page2.click();
+        await this.page.waitForTimeout(6000);
+        const ratings2 = await this.homepage.productCo2Rating.evaluateAll(elements =>
+          elements.map(el => {
+            const active = el.querySelector('.co2-letter.active');
+            return active?.textContent?.trim() || '';
+          })
+        );
+        const sortedItems2 = [...ratings2].sort((a, b) =>
+          sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
+        );
+        allData.push(...ratings2);
+        allSortedItems.push(...sortedItems2);
+      }
+
+      console.log('rating', sortType, allData);
+      expect(allData).toEqual(allSortedItems);
     }
   }
 
