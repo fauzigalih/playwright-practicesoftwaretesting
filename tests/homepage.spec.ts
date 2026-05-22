@@ -29,13 +29,31 @@ test.describe('Homepage', () => {
     }
   });
 
-  test('Check dropdown sort product', async ({ page }) => {
-    await fixed.sortByNameAsc();
-    await fixed.sortByNameDesc();
-    await fixed.sortByPriceAsc();
-    await fixed.sortByPriceDesc();
-    await fixed.sortByCo2Asc();
-    await fixed.sortByCo2Desc();
+  
+  test.describe('Sorting', () => {
+    test('Check dropdown sort by product name ascending', async ({ page }) => {
+      await fixed.sortByNameAsc();
+    });
+    
+    test('Check dropdown sort by product name descending', async ({ page }) => {
+      await fixed.sortByNameDesc();
+    });
+    
+    test('Check dropdown sort by product price ascending', async ({ page }) => {
+      await fixed.sortByPriceAsc();
+    });
+    
+    test('Check dropdown sort by product price descending', async ({ page }) => {
+      await fixed.sortByPriceAsc();
+    });
+    
+    test('Check dropdown sort by product co2 ascending', async ({ page }) => {
+      await fixed.sortByCo2Asc();
+    });
+    
+    test('Check dropdown sort by product co2 descending', async ({ page }) => {
+      await fixed.sortByCo2Desc();
+    });
   });
   
 });
