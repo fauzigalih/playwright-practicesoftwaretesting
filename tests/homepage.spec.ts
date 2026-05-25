@@ -23,9 +23,23 @@ test.describe('Homepage', () => {
 
   test('Check pagination', async ({ page }) => {
     await homepage.pagination.waitFor();
-    const paginationVisible = await homepage.pagination.isVisible();
     if (await homepage.pagination.isVisible()) {
       await expect(homepage.product).toHaveCount(9);
+    }
+  });
+
+  test('Price Range', async ({ page }) => {
+    // Set price range from 30 to 80
+    await fixed.setPriceRange(30, 80);
+
+    // Retrieve all product prices (traversing pagination if present)
+    const prices = await fixed.getAllProductPrices();
+    console.log('Collected Product Prices (30-80 range):', prices);
+
+    // Validate that all retrieved prices conform to the 30-80 range
+    for (const price of prices) {
+      expect(price).toBeGreaterThanOrEqual(30);
+      expect(price).toBeLessThanOrEqual(80);
     }
   });
 

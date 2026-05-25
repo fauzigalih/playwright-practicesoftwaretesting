@@ -12,6 +12,8 @@ export class FixedPage {
   readonly menuLanguage: Locator;
   readonly sortProduct: Locator;
   readonly priceRange: Locator;
+  readonly priceMinHandle: Locator;
+  readonly priceMaxHandle: Locator;
   readonly search: Locator;
   readonly homepage: HomePage;
 
@@ -27,6 +29,8 @@ export class FixedPage {
     this.menuLanguage = page.locator('#language');
     this.sortProduct = page.locator('.form-select');
     this.priceRange = page.locator('.ngx-slider.animate');
+    this.priceMinHandle = page.locator('span.ngx-slider-pointer-min');
+    this.priceMaxHandle = page.locator('span.ngx-slider-pointer-max');
     this.search = page.locator('#search-query');
   }
 
@@ -131,6 +135,82 @@ export class FixedPage {
 
   async sortByCo2Desc() {
     await this.sortProducts('co2_rating', 'desc');
+  }
+
+  async setPriceRange(minTarget: number, maxTarget: number) {
+    // Setup response promise before triggering filter changes
+    const responsePromise = this.page.waitForResponse(response => 
+      response.url().includes('products') && 
+      response.url().includes(`between=price,${minTarget},${maxTarget}`) && 
+      response.status() === 200
+    );
+
+    // Adjust Min
+    await this.priceMinHandle.focus();
+    let currentMin = Number(await this.priceMinHandle.getAttribute('aria-valuenow'));
+    while (currentMin !== minTarget) {
+      if (currentMin < minTarget) {
+        await this.page.keyboard.press('ArrowRight');
+      } else {
+        await this.page.keyboard.press('ArrowLeft');
+      }
+      await this.page.waitForTimeout(50);
+      currentMin = Number(await this.priceMinHandle.getAttribute('aria-valuenow'));
+    }
+
+    // Adjust Max
+    await this.priceMaxHandle.focus();
+    let currentMax = Number(await this.priceMaxHandle.getAttribute('aria-valuenow'));
+    while (currentMax !== maxTarget) {
+      if (currentMax < maxTarget) {
+        await this.page.keyboard.press('ArrowRight');
+      } else {
+        await this.page.keyboard.press('ArrowLeft');
+      }
+      await this.page.waitForTimeout(50);
+      currentMax = Number(await this.priceMaxHandle.getAttribute('aria-valuenow'));
+    }
+
+    // Wait for the specific API response that matches the target filter
+    await responsePromise;
+    
+    // Add additional short timeout for DOM/UI updates
+    await this.page.waitForTimeout(3000);
+  }
+
+  async getAllProductPrices(): Promise<number[]> {
+    const allPrices: number[] = [];
+
+    // Extract from current page (Page 1)
+    const page1Texts = await this.homepage.productPrice.allTextContents();
+    allPrices.push(...page1Texts.map(p => Number(p.replace(/[^0-9.]/g, ''))));
+
+    // Check pagination & traverse pages
+    const pagination = this.page.locator('.pagination');
+    if (await pagination.isVisible()) {
+      let pageNum = 2;
+      while (true) {
+        const pageLink = this.page.locator(`[aria-label="Page-${pageNum}"]`);
+        if (await pageLink.count() > 0) {
+          const pageResponsePromise = this.page.waitForResponse(response =>
+            response.url().includes('products') && 
+            response.url().includes(`page=${pageNum}`) && 
+            response.status() === 200
+          );
+          await pageLink.click();
+          await pageResponsePromise;
+          await this.page.waitForTimeout(3000);
+
+          const pageTexts = await this.homepage.productPrice.allTextContents();
+          allPrices.push(...pageTexts.map(p => Number(p.replace(/[^0-9.]/g, ''))));
+          pageNum++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    return allPrices;
   }
 
 }
