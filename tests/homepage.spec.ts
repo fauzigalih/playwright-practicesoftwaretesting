@@ -29,7 +29,6 @@ test.describe('Homepage', () => {
     }
   });
 
-  
   test.describe('Sorting', () => {
     test('Check dropdown sort by product name ascending', async ({ page }) => {
       await fixed.sortByNameAsc();
@@ -44,7 +43,7 @@ test.describe('Homepage', () => {
     });
     
     test('Check dropdown sort by product price descending', async ({ page }) => {
-      await fixed.sortByPriceAsc();
+      await fixed.sortByPriceDesc();
     });
     
     test('Check dropdown sort by product co2 ascending', async ({ page }) => {

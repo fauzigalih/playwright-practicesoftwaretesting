@@ -1,6 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { HomePage } from './home.page';
-import { title } from 'node:process';
 
 export class FixedPage {
   readonly page: Page;
@@ -16,9 +15,7 @@ export class FixedPage {
   readonly search: Locator;
   readonly homepage: HomePage;
 
-
   constructor(page: Page) {
-    
     this.homepage = new HomePage(page);
     this.page = page;
     this.documentation = page.locator('a.text-white');
@@ -48,100 +45,68 @@ export class FixedPage {
     await expect(this.search).toBeVisible();
   }
 
-  private async sortProducts(option: 'name'|'price'|'co2_rating' , sortType: 'asc'|'desc') {
-    const value = `${option},${sortType}`;
-    await this.sortProduct.click();
-    await this.sortProduct.selectOption(value);
-    await this.page.waitForTimeout(6000);
-    const allData = [];
-    const allSortedItems = [];
+  /**
+   * Helper method to extract actual values from the current page based on the sort option.
+   */
+  private async getProductValues(option: 'name' | 'price' | 'co2_rating'): Promise<(string | number)[]> {
     if (option === 'name') {
-      // page1
-      const titles1 = await this.homepage.productName.allTextContents();
-      const sortedItems1 = [...titles1].sort((a, b) =>
-        sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
-      );
-      allData.push(...titles1);
-      allSortedItems.push(...sortedItems1);
-      
-      // check page2 exists
-      const page2 = this.page.locator('[aria-label="Page-2"]');
-      if (await page2.count() > 0) {
-        await page2.click();
-        await this.page.waitForTimeout(6000);
-        const titles2 = await this.homepage.productName.allTextContents();
-        const sortedItems2 = [...titles2].sort((a, b) =>
-          sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
-        );
-        allData.push(...titles2);
-        allSortedItems.push(...sortedItems2);
-      }
-
-      console.log('name',sortType, allData);
-      expect(allData).toEqual(allSortedItems);
-
+      return await this.homepage.productName.allTextContents();
     } else if (option === 'price') {
-      // page1
-      const prices1 = (await this.homepage.productPrice.allTextContents())
-        .map(p => Number(p.replace(/[^0-9.]/g, '')));
-      const sortedItems1 = [...prices1].sort((a, b) =>
-        sortType === 'asc' ? a - b : b - a
-      );
-      allData.push(...prices1);
-      allSortedItems.push(...sortedItems1);
-
-      // check page2 exists
-      const page2 = this.page.locator('[aria-label="Page-2"]');
-      if (await page2.count() > 0) {
-        await page2.click();
-        await this.page.waitForTimeout(6000);
-        const prices2 = (await this.homepage.productPrice.allTextContents())
-          .map(p => Number(p.replace(/[^0-9.]/g, '')));
-        const sortedItems2 = [...prices2].sort((a, b) =>
-          sortType === 'asc' ? a - b : b - a
-        );
-        allData.push(...prices2);
-        allSortedItems.push(...sortedItems2);
-      }
-
-      console.log('price', sortType, allData);
-      expect(allData).toEqual(allSortedItems);
-
+      const texts = await this.homepage.productPrice.allTextContents();
+      return texts.map(p => Number(p.replace(/[^0-9.]/g, '')));
     } else if (option === 'co2_rating') {
-      // page1
-      const ratings1 = await this.homepage.productCo2Rating.evaluateAll(elements =>
+      return await this.homepage.productCo2Rating.evaluateAll(elements =>
         elements.map(el => {
           const active = el.querySelector('.co2-letter.active');
           return active?.textContent?.trim() || '';
         })
       );
-      const sortedItems1 = [...ratings1].sort((a, b) =>
-        sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
-      );
-      allData.push(...ratings1);
-      allSortedItems.push(...sortedItems1);
-
-      // check page2 exists
-      const page2 = this.page.locator('[aria-label="Page-2"]');
-      if (await page2.count() > 0) {
-        await page2.click();
-        await this.page.waitForTimeout(6000);
-        const ratings2 = await this.homepage.productCo2Rating.evaluateAll(elements =>
-          elements.map(el => {
-            const active = el.querySelector('.co2-letter.active');
-            return active?.textContent?.trim() || '';
-          })
-        );
-        const sortedItems2 = [...ratings2].sort((a, b) =>
-          sortType === 'asc' ? a.localeCompare(b) : b.localeCompare(a)
-        );
-        allData.push(...ratings2);
-        allSortedItems.push(...sortedItems2);
-      }
-
-      console.log('rating', sortType, allData);
-      expect(allData).toEqual(allSortedItems);
     }
+    return [];
+  }
+
+  /**
+   * Universal compare function for sorting values.
+   */
+  private compareValues(a: string | number, b: string | number, sortType: 'asc' | 'desc'): number {
+    if (typeof a === 'number' && typeof b === 'number') {
+      return sortType === 'asc' ? a - b : b - a;
+    }
+    return sortType === 'asc' ? String(a).localeCompare(String(b)) : String(b).localeCompare(String(a));
+  }
+
+  /**
+   * Common sorting and assertion pipeline for products across page 1 and page 2.
+   */
+  private async sortProducts(option: 'name' | 'price' | 'co2_rating', sortType: 'asc' | 'desc') {
+    const value = `${option},${sortType}`;
+    await this.sortProduct.click();
+    await this.sortProduct.selectOption(value);
+    await this.page.waitForTimeout(6000);
+
+    const allData: (string | number)[] = [];
+    const allSortedItems: (string | number)[] = [];
+
+    // Process Page 1
+    const page1Data = await this.getProductValues(option);
+    const page1Sorted = [...page1Data].sort((a, b) => this.compareValues(a, b, sortType));
+    allData.push(...page1Data);
+    allSortedItems.push(...page1Sorted);
+
+    // Process Page 2 if exists
+    const page2 = this.page.locator('[aria-label="Page-2"]');
+    if (await page2.count() > 0) {
+      await page2.click();
+      await this.page.waitForTimeout(6000);
+      
+      const page2Data = await this.getProductValues(option);
+      const page2Sorted = [...page2Data].sort((a, b) => this.compareValues(a, b, sortType));
+      allData.push(...page2Data);
+      allSortedItems.push(...page2Sorted);
+    }
+
+    console.log(`${option} (${sortType}):`, allData);
+    expect(allData).toEqual(allSortedItems);
   }
 
   async sortByNameAsc() {
@@ -155,7 +120,7 @@ export class FixedPage {
   async sortByPriceAsc() {
     await this.sortProducts('price', 'asc');
   }
-  
+
   async sortByPriceDesc() {
     await this.sortProducts('price', 'desc');
   }
@@ -163,7 +128,7 @@ export class FixedPage {
   async sortByCo2Asc() {
     await this.sortProducts('co2_rating', 'asc');
   }
-  
+
   async sortByCo2Desc() {
     await this.sortProducts('co2_rating', 'desc');
   }
