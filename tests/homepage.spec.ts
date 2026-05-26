@@ -28,7 +28,7 @@ test.describe('Homepage', () => {
     }
   });
 
-  test('Price Range', async ({ page }) => {
+test('Price Range', async ({ page }) => {
     // Set price range from 30 to 80
     await fixed.setPriceRange(30, 80);
 
@@ -68,5 +68,57 @@ test.describe('Homepage', () => {
       await fixed.sortByCo2Desc();
     });
   });
-  
+
+  test.describe('Feature Search', () => {
+    const KEYWORD = 'hammer';
+
+    test('Search Product', async ({ page }) => {
+      await fixed.searchProduct(KEYWORD);
+
+      // Validate "Searched for: <keyword>" matches input
+      const searchKeyword = await fixed.getSearchResultKeyword();
+      expect(searchKeyword.toLowerCase()).toBe(KEYWORD);
+
+      // Validate total count and keyword in count message
+      const total = await fixed.getSearchResultTotal();
+      const countKeyword = await fixed.getSearchResultKeywordFromCount();
+      expect(total).toBeGreaterThan(0);
+      expect(countKeyword.toLowerCase()).toBe(KEYWORD);
+
+      // Validate total matches actual number of displayed products
+      const productNames = await fixed.getSearchResultProductNames();
+      expect(productNames.length).toBe(total);
+
+      // List the products found
+      console.log(`Found ${total} products for keyword "${KEYWORD}":`, productNames);
+    });
+
+    test('Clear Filter Search', async ({ page }) => {
+      // Search for keyword first
+      await fixed.searchProduct(KEYWORD);
+
+      // Verify search results are displayed
+      await expect(fixed.searchResultHeading).toBeVisible();
+      await expect(fixed.searchResultCount).toBeVisible();
+
+      // Ensure products exist
+      const productsBeforeClear = await fixed.getSearchResultProductNames();
+      expect(productsBeforeClear.length).toBeGreaterThan(0);
+
+      // Click X to clear search
+      await fixed.clearSearch();
+
+      // Validate "Searched for:" text no longer appears
+      await expect(fixed.searchResultHeading).not.toBeVisible();
+
+      // Validate count text no longer appears
+      await expect(fixed.searchResultCount).not.toBeVisible();
+
+      // Validate there are other products besides hammer
+      const nonHammerProducts = await fixed.getNonMatchingProductNames(KEYWORD);
+      expect(nonHammerProducts.length).toBeGreaterThan(0);
+      console.log('Non-hammer products after clear:', nonHammerProducts);
+    });
+  });
+
 });

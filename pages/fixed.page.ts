@@ -15,6 +15,10 @@ export class FixedPage {
   readonly priceMinHandle: Locator;
   readonly priceMaxHandle: Locator;
   readonly search: Locator;
+  readonly searchClearButton: Locator;
+  readonly searchButton: Locator;
+  readonly searchResultHeading: Locator;
+  readonly searchResultCount: Locator;
   readonly homepage: HomePage;
 
   constructor(page: Page) {
@@ -32,6 +36,10 @@ export class FixedPage {
     this.priceMinHandle = page.locator('span.ngx-slider-pointer-min');
     this.priceMaxHandle = page.locator('span.ngx-slider-pointer-max');
     this.search = page.locator('#search-query');
+    this.searchClearButton = page.getByRole('button', { name: 'X' });
+    this.searchButton = page.getByRole('button', { name: 'Search' });
+    this.searchResultHeading = page.locator('h3').filter({ hasText: 'Searched for:' });
+    this.searchResultCount = page.locator('p').filter({ hasText: 'products found for' });
   }
 
   async checkNavbarVisible() {
@@ -213,4 +221,81 @@ export class FixedPage {
     return allPrices;
   }
 
+  // ==============================
+  // SEARCH METHODS
+  // ==============================
+
+  /**
+   * Type a keyword into the search box and press Enter to trigger search.
+   */
+  async searchProduct(keyword: string) {
+    await this.search.fill(keyword);
+    await this.page.keyboard.press('Enter');
+    await this.page.waitForTimeout(3000);
+  }
+
+  /**
+   * Get the keyword displayed in the "Searched for: <keyword>" heading.
+   * Returns the keyword portion only.
+   */
+  async getSearchResultKeyword(): Promise<string> {
+    const text = await this.searchResultHeading.textContent();
+    return text?.replace('Searched for:', '').trim() ?? '';
+  }
+
+  /**
+   * Get the total number from "<total> products found for '<keyword>'".
+   * Returns total as a number.
+   */
+  async getSearchResultTotal(): Promise<number> {
+    const text = await this.searchResultCount.textContent() ?? '';
+    const match = text.match(/(\d+)\s+products found for/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  /**
+   * Get the keyword portion from "<total> products found for '<keyword>'".
+   */
+  async getSearchResultKeywordFromCount(): Promise<string> {
+    const text = await this.searchResultCount.textContent() ?? '';
+    const match = text.match(/products found for '(.+)'/);
+    return match ? match[1] : '';
+  }
+
+  /**
+   * Get the list of product names displayed in search results.
+   */
+  async getSearchResultProductNames(): Promise<string[]> {
+    return await this.homepage.productName.allTextContents();
+  }
+
+  /**
+   * Click the X button to clear the search filter.
+   */
+  async clearSearch() {
+    await this.searchClearButton.click();
+    await this.page.waitForTimeout(2000);
+  }
+
+  /**
+   * Check if the search result heading "Searched for: ..." is visible.
+   */
+  async isSearchResultVisible(): Promise<boolean> {
+    return await this.searchResultHeading.isVisible();
+  }
+
+  /**
+   * Check if the search result count text is visible.
+   */
+  async isSearchResultCountVisible(): Promise<boolean> {
+    return await this.searchResultCount.isVisible();
+  }
+
+  /**
+   * Get all product names that do NOT contain the given keyword.
+   */
+  async getNonMatchingProductNames(keyword: string): Promise<string[]> {
+    const allNames = await this.getSearchResultProductNames();
+    return allNames.filter(name => !name.toLowerCase().includes(keyword.toLowerCase()));
+  }
 }
